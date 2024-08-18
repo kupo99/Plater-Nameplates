@@ -1882,9 +1882,10 @@ local debuff_options = {
 			Plater.RefreshAuras()
 			Plater.UpdateAllPlates()
 		end,
-		min = 1,
+		min = 0,
 		max = 5,
-		step = 1,
+		step = 0.5,
+    usedecimals = true,
 		name = "OPTIONS_BORDER_THICKNESS",
 		desc = "OPTIONS_BORDER_THICKNESS",
 	},
@@ -1931,9 +1932,10 @@ local debuff_options = {
 			Plater.RefreshAuras()
 			Plater.UpdateAllPlates()
 		end,
-		min = 1,
+		min = 0,
 		max = 5,
-		step = 1,
+		step = 0.5,
+    usedecimals = true,
 		name = "OPTIONS_BORDER_THICKNESS",
 		desc = "OPTIONS_BORDER_THICKNESS",
 	},
@@ -3989,9 +3991,10 @@ do
 				Plater.RefreshAuras()
 				Plater.UpdateAllPlates()
 			end,
-			min = 1,
+			min = 0,
 			max = 5,
-			step = 1,
+			step = 0.5,
+      usedecimals = true,
 			name = "OPTIONS_BORDER_THICKNESS",
 			desc = "OPTIONS_BORDER_THICKNESS",
 		},
