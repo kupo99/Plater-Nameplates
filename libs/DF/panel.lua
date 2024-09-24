@@ -1820,7 +1820,6 @@ function detailsFramework:IconPick (callback, close_when_select, param1, param2)
 							if type(lineIcon) == "string" and not string.find(lineIcon, "^[Ii]nterface") then
 								lineIcon = "Interface/ICONS/" .. lineIcon
 							end
-							DevTool:AddData(lineIcon, "lineIcon")
 							line.buttons[o].icon:SetTexture(lineIcon)
 							line.buttons[o].texture = lineIcon
 						end
@@ -2142,6 +2141,7 @@ local no_options = {}
 ---@field Title fontstring
 ---@field Close button
 ---@field SetTitle fun(self: simplepanel, title: string)
+
 ---@param parent frame the parent frame
 ---@param width number? the width of the panel
 ---@param height number? the height of the panel
@@ -2149,7 +2149,7 @@ local no_options = {}
 ---@param frameName string? the name of the frame
 ---@param panelOptions table? a table with options described above
 ---@param savedVariableTable table? a table to save the scale of the panel
----@return frame
+---@return simplepanel
 function detailsFramework:CreateSimplePanel(parent, width, height, title, frameName, panelOptions, savedVariableTable)
 	--create a saved variable table if the savedVariableTable has been not passed within the function call
 	if (savedVariableTable and frameName and not savedVariableTable[frameName]) then
@@ -5359,6 +5359,10 @@ detailsFramework.TimeLineFunctions = {
 		self.data = data
 		self:RefreshTimeLine()
 	end,
+
+	GetData = function(self)
+		return self.data
+	end,
 }
 
 --creates a regular scroll in horizontal position
@@ -5392,11 +5396,14 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 	--create elapsed time frame
 	frameCanvas.elapsedTimeFrame = detailsFramework:CreateElapsedTimeFrame(frameBody, frameCanvas:GetName() and frameCanvas:GetName() .. "ElapsedTimeFrame", timelineOptions)
 
+	local thumbColor = 0.95
+	local scrollBackgroudColor = {0.05, 0.05, 0.05, 0.7}
+
 	--create horizontal slider
 		local horizontalSlider = CreateFrame("slider", frameCanvas:GetName() .. "HorizontalSlider", parent, "BackdropTemplate")
 		horizontalSlider.bg = horizontalSlider:CreateTexture(nil, "background")
 		horizontalSlider.bg:SetAllPoints(true)
-		horizontalSlider.bg:SetTexture(0, 0, 0, 0.5)
+		horizontalSlider.bg:SetColorTexture(unpack(scrollBackgroudColor))
 		frameCanvas.horizontalSlider = horizontalSlider
 
 		horizontalSlider:SetBackdrop(frameCanvas.options.slider_backdrop)
@@ -5406,7 +5413,7 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 		horizontalSlider.thumb = horizontalSlider:CreateTexture(nil, "OVERLAY")
 		horizontalSlider.thumb:SetTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
 		horizontalSlider.thumb:SetSize(24, 24)
-		horizontalSlider.thumb:SetVertexColor(0.6, 0.6, 0.6, 0.95)
+		horizontalSlider.thumb:SetVertexColor(thumbColor, thumbColor, thumbColor, 0.95)
 		horizontalSlider:SetThumbTexture(horizontalSlider.thumb)
 
 		horizontalSlider:SetOrientation("horizontal")
@@ -5427,7 +5434,7 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 		local scaleSlider = CreateFrame("slider", frameCanvas:GetName() .. "ScaleSlider", parent, "BackdropTemplate")
 		scaleSlider.bg = scaleSlider:CreateTexture(nil, "background")
 		scaleSlider.bg:SetAllPoints(true)
-		scaleSlider.bg:SetTexture(0, 0, 0, 0.5)
+		scaleSlider.bg:SetColorTexture(unpack(scrollBackgroudColor))
 		scaleSlider:Disable()
 		frameCanvas.scaleSlider = scaleSlider
 
@@ -5438,7 +5445,7 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 		scaleSlider.thumb = scaleSlider:CreateTexture(nil, "OVERLAY")
 		scaleSlider.thumb:SetTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
 		scaleSlider.thumb:SetSize(24, 24)
-		scaleSlider.thumb:SetVertexColor(0.6, 0.6, 0.6, 0.95)
+		scaleSlider.thumb:SetVertexColor(thumbColor, thumbColor, thumbColor, 0.95)
 		scaleSlider:SetThumbTexture(scaleSlider.thumb)
 
 		scaleSlider:SetOrientation("horizontal")
@@ -5460,7 +5467,7 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 		local verticalSlider = CreateFrame("slider", frameCanvas:GetName() .. "VerticalSlider", parent, "BackdropTemplate")
 		verticalSlider.bg = verticalSlider:CreateTexture(nil, "background")
 		verticalSlider.bg:SetAllPoints(true)
-		verticalSlider.bg:SetTexture(0, 0, 0, 0.5)
+		verticalSlider.bg:SetColorTexture(unpack(scrollBackgroudColor))
 		frameCanvas.verticalSlider = verticalSlider
 
 		verticalSlider:SetBackdrop(frameCanvas.options.slider_backdrop)
@@ -5470,7 +5477,7 @@ function detailsFramework:CreateTimeLineFrame(parent, name, options, timelineOpt
 		verticalSlider.thumb = verticalSlider:CreateTexture(nil, "OVERLAY")
 		verticalSlider.thumb:SetTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
 		verticalSlider.thumb:SetSize(24, 24)
-		verticalSlider.thumb:SetVertexColor(0.6, 0.6, 0.6, 0.95)
+		verticalSlider.thumb:SetVertexColor(thumbColor, thumbColor, thumbColor, 0.95)
 		verticalSlider:SetThumbTexture(verticalSlider.thumb)
 
 		verticalSlider:SetOrientation("vertical")
