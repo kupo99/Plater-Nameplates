@@ -1267,8 +1267,20 @@ end
 	--if the icon is more of a retangular shape, it'll cut the top and bottom sides of the icon giving a wide view
 	function Plater.UpdateIconAspecRatio (auraIconFrame)
 		local width, height = auraIconFrame:GetSize()
-		local ratio = width > height and min (max (abs (width / height - 2) + 0.05, 0.6), 1) or .95
-		auraIconFrame.Icon:SetTexCoord (.05, .95, .09, ratio)
+		-- local ratio = width > height and min (max (abs (width / height - 2) + 0.05, 0.6), 1) or .95
+		-- auraIconFrame.Icon:SetTexCoord (.05, .95, .09, ratio)
+
+    -- local MARGIN = 0.075
+    local MARGIN = 0.1
+
+    if (height < width) then    
+      local y_shift = -0.025
+      local ASPECT_MARGIN = 0.5*(1 - height/width)
+      auraIconFrame.Icon:SetTexCoord (MARGIN, 1 - MARGIN, MARGIN + ASPECT_MARGIN + y_shift, 1 - MARGIN - ASPECT_MARGIN + y_shift)
+    else
+      local ASPECT_MARGIN = 0.5*(1 - width/height)
+      auraIconFrame.Icon:SetTexCoord (MARGIN + ASPECT_MARGIN, 1 - MARGIN - ASPECT_MARGIN, MARGIN, 1 - MARGIN)
+    end
 	end
 
 	function platerInternal.CreateAuraIcon (parent, name) --private ~createicon ~icon
@@ -1289,6 +1301,7 @@ end
 		-- switch to proper border, keep compatibility
 		newIcon.Border = DF:CreateFullBorder("$parentBorder", newIcon)
 		local iconOffset = -1 * UIParent:GetEffectiveScale() * (Plater.db.profile.use_ui_parent_just_enabled and Plater.db.profile.ui_parent_scale_tune or 1)
+    iconOffset = 0
 		PixelUtil.SetPoint (newIcon.Border, "TOPLEFT", newIcon, "TOPLEFT", -iconOffset, iconOffset)
 		PixelUtil.SetPoint (newIcon.Border, "TOPRIGHT", newIcon, "TOPRIGHT", iconOffset, iconOffset)
 		PixelUtil.SetPoint (newIcon.Border, "BOTTOMLEFT", newIcon, "BOTTOMLEFT", -iconOffset, -iconOffset)
@@ -1298,6 +1311,7 @@ end
 		end
 		newIcon.Border.SetBorderSize = function(self, size)
 			local borderSize = (size or 1) * UIParent:GetEffectiveScale() * (Plater.db.profile.use_ui_parent_just_enabled and Plater.db.profile.ui_parent_scale_tune or 1)
+      -- borderSize = (size or 1)
 			self:SetBorderSizes(borderSize, 1, borderSize, 0)
 			self:UpdateSizes()
 		end
@@ -1322,6 +1336,7 @@ end
 		--newIcon.Icon:SetSize (18, 12)
 		--newIcon.Icon:SetPoint ("center")
 		iconOffset = -1 * UIParent:GetEffectiveScale() * (Plater.db.profile.use_ui_parent_just_enabled and Plater.db.profile.ui_parent_scale_tune or 1)
+    iconOffset = 0
 		PixelUtil.SetPoint (newIcon.Icon, "TOPLEFT", newIcon, "TOPLEFT", -iconOffset, iconOffset)
 		PixelUtil.SetPoint (newIcon.Icon, "TOPRIGHT", newIcon, "TOPRIGHT", iconOffset, iconOffset)
 		PixelUtil.SetPoint (newIcon.Icon, "BOTTOMLEFT", newIcon, "BOTTOMLEFT", -iconOffset, -iconOffset)
@@ -1379,12 +1394,24 @@ end
 		newIcon.CountFrame.Count:SetJustifyH ("right")
 		newIcon.CountFrame.Count:SetPoint ("bottomright", 3, -2)
 		
+    -- print("newIcon.CountFrame: ", newIcon.CountFrame:GetFrameStrata())
+
 		--expose to scripts
 		newIcon.StackText = newIcon.CountFrame.Count
 		
-		newIcon.Cooldown.Timer = newIcon.Cooldown:CreateFontString (nil, "overlay", "NumberFontNormal")
-		newIcon.Cooldown.Timer:SetPoint ("center")
-		newIcon.TimerText = newIcon.Cooldown.Timer
+    newIcon.RemainTimeFrame = CreateFrame("frame", "$parentRemainTimeFrame", newIcon, BackdropTemplateMixin and "BackdropTemplate")
+    newIcon.RemainTimeFrame:SetAllPoints()
+		newIcon.RemainTimeFrame:EnableMouse (false)
+    if newIcon.RemainTimeFrame.EnableMouseMotion then
+			newIcon.RemainTimeFrame:EnableMouseMotion (false)
+		end
+    
+    -- newIcon.RemainTimeFrame.noCooldownCount = Plater.db.profile.disable_omnicc_on_auras
+    
+		newIcon.RemainTimeFrame.Timer = newIcon.RemainTimeFrame:CreateFontString (nil, "overlay", "NumberFontNormal")
+    -- newIcon.RemainTimeFrame.Timer:SetJustifyH ("right")
+		-- newIcon.RemainTimeFrame.Timer:SetPoint ("center")
+		newIcon.TimerText = newIcon.RemainTimeFrame.Timer
 
 		return newIcon
 	end
@@ -1433,14 +1460,14 @@ end
 		local now = GetTime()
 		if (self.lastUpdateCooldown + 0.05) <= now then
 			self.RemainingTime = (self.ExpirationTime - now) / (self.ModRate or 1)
-			if self.RemainingTime > 0 then
+			if self.RemainingTime > 0 and self.RemainingTime < 16 then
 				if self.formatWithDecimals then
-					self.Cooldown.Timer:SetText (Plater.FormatTimeDecimal (self.RemainingTime))
+					self.RemainTimeFrame.Timer:SetText (Plater.FormatTimeDecimal (self.RemainingTime))
 				else
-					self.Cooldown.Timer:SetText (Plater.FormatTime (self.RemainingTime))
+					self.RemainTimeFrame.Timer:SetText (Plater.FormatTime (self.RemainingTime))
 				end
 			else
-				self.Cooldown.Timer:SetText ("")
+				self.RemainTimeFrame.Timer:SetText ("")
 			end
 			self.lastUpdateCooldown = now
 		end
@@ -1569,6 +1596,7 @@ end
 		auraIconFrame:SetAlpha(1)
 		auraIconFrame.Icon:SetDesaturated(false)
 		auraIconFrame.Cooldown:Show()
+    -- auraIconFrame.RemainTimeFrame:Show()
 		
 		Plater.EndLogPerformanceCore("Plater-Core", "Update", "UpdateAuras - GetAuraIcon")
 
@@ -1644,7 +1672,7 @@ end
 			Plater.SetAnchor (stackLabel, profile.aura_stack_anchor)
 			
 			--timer
-			local timerLabel = auraIconFrame.Cooldown.Timer
+			local timerLabel = auraIconFrame.RemainTimeFrame.Timer
 			DF:SetFontSize (timerLabel, profile.aura_timer_text_size)
 			
 			--DF:SetFontOutline (timerLabel, profile.aura_timer_text_shadow)
@@ -1688,6 +1716,13 @@ end
 			auraIconFrame.Cooldown:SetEdgeTexture (profile.aura_cooldown_edge_texture)
 			auraIconFrame.Cooldown:SetReverse (profile.aura_cooldown_reverse)
 			auraIconFrame.Cooldown:SetDrawSwipe (profile.aura_cooldown_show_swipe)
+
+      local cooldownLevel = auraIconFrame.Cooldown:GetFrameLevel();
+      auraIconFrame.Border:SetFrameLevel(cooldownLevel + 1)
+      auraIconFrame.CountFrame:SetFrameLevel(cooldownLevel + 2)
+      auraIconFrame.RemainTimeFrame:SetFrameLevel(cooldownLevel + 2)
+
+      -- print("auraIconFrame.Border: ", auraIconFrame.Border:GetFrameStrata())
 
 			Plater.UpdateIconAspecRatio (auraIconFrame)
 			
@@ -1741,7 +1776,7 @@ end
 		auraIconFrame.IsGhostAura = false
 		auraIconFrame.BuffFrame = self.Name == "Secondary" and 2 or 1
 
-		if (applications > 1) then
+		if (applications > 0) then
 			local stackLabel = auraIconFrame.CountFrame.Count
 			stackLabel:SetText (applications)
 			stackLabel:Show()
@@ -1798,9 +1833,9 @@ end
 		local now = GetTime()
 		local timeLeft = (expirationTime - now) / modRate
 		
-		if (profile.aura_timer and timeLeft > 0) then
+		if (profile.aura_timer and timeLeft > 0 and timeLeft < 16) then
 			--> update the aura timer
-			local timerLabel = auraIconFrame.Cooldown.Timer
+			local timerLabel = auraIconFrame.RemainTimeFrame.Timer
 
 			auraIconFrame.formatWithDecimals = profile.aura_timer_decimals -- update setting
 			if profile.aura_timer_decimals then
@@ -1813,7 +1848,7 @@ end
 			timerLabel:Show()
 		else
 			auraIconFrame:SetScript("OnUpdate", nil)
-			auraIconFrame.Cooldown.Timer:Hide()
+			auraIconFrame.RemainTimeFrame.Timer:Hide()
 		end
 		
 		--check if the aura icon frame is already shown
@@ -2026,6 +2061,7 @@ end
 			
 			iconFrame.Border = DF:CreateFullBorder("$parentBorder", iconFrame)
 			local iconOffset = -1 * UIParent:GetEffectiveScale() * (Plater.db.profile.use_ui_parent_just_enabled and Plater.db.profile.ui_parent_scale_tune or 1)
+      iconOffset = 0
 			PixelUtil.SetPoint (iconFrame.Border, "TOPLEFT", iconFrame, "TOPLEFT", -iconOffset, iconOffset)
 			PixelUtil.SetPoint (iconFrame.Border, "TOPRIGHT", iconFrame, "TOPRIGHT", iconOffset, iconOffset)
 			PixelUtil.SetPoint (iconFrame.Border, "BOTTOMLEFT", iconFrame, "BOTTOMLEFT", -iconOffset, -iconOffset)
@@ -2035,6 +2071,7 @@ end
 			end
 			iconFrame.Border.SetBorderSize = function(self, size)
 				local borderSize = (size or 1) * UIParent:GetEffectiveScale() * (Plater.db.profile.use_ui_parent_just_enabled and Plater.db.profile.ui_parent_scale_tune or 1)
+        -- borderSize = (size or 1)
 				self:SetBorderSizes(borderSize, 1, borderSize, 0)
 				self:UpdateSizes()
 			end

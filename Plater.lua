@@ -7517,15 +7517,15 @@ end
 			
 			if (showDecimals) then
 				if (percent < 10) then
-					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format (" (%.2f%s)", percent, symbol))
+					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format (" %.2f%s", percent, symbol))
 					
 				elseif (percent < 99.9) then
-					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format (" (%.1f%s)", percent, symbol))
+					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format (" %.1f%s", percent, symbol))
 				else
-					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format(" (100%s)", symbol))
+					healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) .. format(" 100%s", symbol))
 				end
 			else
-				healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) ..  format (" (%d%s)", percent, symbol))
+				healthBar.lifePercent:SetText (Plater.FormatNumber (currentHealth) ..  format (" %d%s", percent, symbol))
 			end
 			
 		elseif (showHealthAmount) then
@@ -7541,7 +7541,7 @@ end
 				elseif (percent < 99.9) then
 					healthBar.lifePercent:SetText (format ("%.1f%s", percent, symbol))
 				else
-					healthBar.lifePercent:SetText (format(" (100%s)", symbol))
+					healthBar.lifePercent:SetText (format(" 100%s", symbol))
 				end
 			else
 				healthBar.lifePercent:SetText (format ("%d%s", percent, symbol))
